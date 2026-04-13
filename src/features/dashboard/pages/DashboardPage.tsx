@@ -1,13 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../../auth/services/auth.service';
+import { authService, getHighestPriorityRole } from '../../auth/services/auth.service';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const user = authService.getStoredUser();
+  const roleLabel = getHighestPriorityRole(user?.roles);
 
   const handleLogout = () => {
-      authService.logout();
-      navigate('/login');
+    authService.logout();
+    navigate('/login');
   };
   return (
     <div className="bg-background text-on-surface min-h-screen">
@@ -24,7 +26,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <nav className="flex-1 space-y-1 font-body">
           <a className="relative flex items-center gap-3 px-6 py-4 text-on-secondary-container before:absolute before:left-0 before:w-1 before:h-6 before:bg-secondary before:rounded-r-full bg-secondary-container/30 scale-[0.99] transition-all" href="#dashboard">
             <span className="material-symbols-outlined">dashboard</span>
@@ -43,18 +45,18 @@ export const DashboardPage: React.FC = () => {
             <span>Accesos</span>
           </a>
         </nav>
-        
+
         <div className="mt-auto px-6 space-y-1 font-body">
           <a className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all" href="#support">
             <span className="material-symbols-outlined">help</span>
             <span>Soporte</span>
           </a>
-          <button 
+          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-6 py-4 text-error hover:bg-error-container/30 transition-all rounded-xl"
           >
             <span className="material-symbols-outlined">logout</span>
-            <span>Vincular / Salir</span>
+            <span>Salir</span>
           </button>
         </div>
       </aside>
@@ -76,11 +78,11 @@ export const DashboardPage: React.FC = () => {
             </button>
             <div className="flex items-center gap-3 pl-6 border-l border-outline-variant/30">
               <div className="text-right">
-                <p className="text-sm font-bold text-on-surface">Propietario Gym</p>
-                <p className="text-[10px] text-on-surface-variant uppercase font-body">Administrador</p>
+                <p className="text-sm font-bold text-on-surface">{user?.nick || user?.email || 'Propietario Gym'}</p>
+                <p className="text-[10px] text-on-surface-variant uppercase font-body">{roleLabel}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold font-body">
-                PR
+                {(user?.nick || user?.email) ? (user?.nick || user?.email)!.substring(0, 2).toUpperCase() : 'PR'}
               </div>
             </div>
           </div>
