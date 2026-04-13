@@ -1,59 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@features/auth/pages/LoginPage';
 import { RegisterPage } from '@features/auth/pages/RegisterPage';
 import { OnboardingPage } from '@features/onboarding/pages/OnboardingPage';
-import { authService } from '@features/auth/services/auth.service';
+import { DashboardPage } from '@features/dashboard/pages/DashboardPage';
+import { AuthGuard } from '@shared/components/AuthGuard';
+import { ProtectedRoute } from '@shared/components/ProtectedRoute';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'dashboard' | 'onboarding'>('login');
-
-  const handleLoginSuccess = () => {
-    const user = authService.getStoredUser();
-    if (user && user.empresaId) {
-      setCurrentPage('dashboard');
-    } else {
-      setCurrentPage('onboarding');
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-surface">
-      {currentPage === 'login' && (
-        <LoginPage 
-          onNavigateToRegister={() => setCurrentPage('register')}
-          onLoginSuccess={handleLoginSuccess} 
-        />
-      )}
-      {currentPage === 'register' && (
-        <RegisterPage onNavigateToLogin={() => setCurrentPage('login')} />
-      )}
-      {currentPage === 'onboarding' && (
-        <OnboardingPage onComplete={() => {
-          authService.logout();
-          setCurrentPage('login');
-          setTimeout(() => alert('¡Configuración completada! Por favor, inicia sesión nuevamente para cargar tu nuevo espacio de trabajo.'), 100);
-        }} />
-      )}
-      {currentPage === 'dashboard' && (
-        <main className="min-h-screen flex items-center justify-center bg-surface-container-lowest">
-          <div className="text-center p-8">
-            <h1 className="text-4xl font-headline font-bold text-on-surface mb-4">Panel de Control</h1>
-            <p className="text-on-surface-variant mb-8 text-lg">Tu cuenta ha sido verificada. Bienvenido a tu panel de gestión.</p>
-            <button 
-              onClick={() => {
-                // Logout flow
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_user');
-                setCurrentPage('login');
-              }}
-              className="py-3 px-6 bg-secondary text-white font-bold rounded-xl shadow hover:bg-on-secondary-container transition-all"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
-        </main>
-      )}
-    </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-surface">
+        <Routes>
+          {/* Public Routes (Only accessible if NOT logged in, or redirects based on state) */}
+          <Route element={<AuthGuard />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
+
+          {/* Protected Routes */}
+          {/* Onboarding: requires auth, but MUST NOT have an empresaId */}
+          <Route element={<ProtectedRoute requireEmpresa={false} />}>
+            <Route path="/onboarding" element={<OnboardingPage />} />
+          </Route>
+
+          {/* Dashboard: requires auth AND MUST have an empresaId */}
+          <Route element={<ProtectedRoute requireEmpresa={true} />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
+
+          {/* Fallback route */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 

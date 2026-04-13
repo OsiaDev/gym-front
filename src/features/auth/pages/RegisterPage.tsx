@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth.api';
 import { VerifyEmailPage } from './VerifyEmailPage';
 
-interface RegisterPageProps {
-    onNavigateToLogin?: () => void;
-}
-
-export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigateToLogin }) => {
+export const RegisterPage: React.FC = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         nombres: '',
         apellidos: '',
@@ -92,7 +90,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigateToLogin })
     };
 
     if (isSuccess) {
-        return <VerifyEmailPage email={formData.email} onNavigateToLogin={onNavigateToLogin} />;
+        return <VerifyEmailPage email={formData.email} onNavigateToLogin={() => navigate('/login')} />;
     }
 
     return (
@@ -179,7 +177,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigateToLogin })
 
                     <div className="mt-8 pt-6 border-t border-outline-variant/10 flex justify-center">
                         <p className="text-sm text-on-surface-variant">
-                            ¿Ya tienes una cuenta? <a className="text-on-primary-container font-bold hover:underline" href="#" onClick={(e) => { e.preventDefault(); onNavigateToLogin?.(); }}>Inicia sesión</a>
+                            ¿Ya tienes una cuenta? <a className="text-on-primary-container font-bold hover:underline" href="#" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Inicia sesión</a>
                         </p>
                     </div>
                 </div>

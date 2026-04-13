@@ -65,11 +65,15 @@ class ApiService {
                         case 403:
                             throw createApiError(403, typeof error.response.data === 'string' ? error.response.data : ERROR_MESSAGES.UNAUTHORIZED);
 
+                        case 400:
+                        case 409:
+                            throw createApiError(status, error.response.data?.message || (typeof error.response.data === 'string' ? error.response.data : error.message));
+
                         case 500:
                             throw createApiError(500, ERROR_MESSAGES.GENERIC_ERROR);
 
                         default:
-                            throw createApiError(status, error.message);
+                            throw createApiError(status, error.response?.data?.message || error.message);
                     }
                 }
 

@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authService, LoginRequest } from '../services/auth.service';
 import { ApiError } from '../../../shared/utils/handleError';
 
-interface LoginPageProps {
-  onNavigateToRegister?: () => void;
-  onLoginSuccess?: () => void;
-}
-
-export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToRegister, onLoginSuccess }) => {
+export const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,8 +17,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToRegister, onLo
 
     try {
       await authService.login({ email, password });
-      if (onLoginSuccess) {
-        onLoginSuccess();
+      const user = authService.getStoredUser();
+      if (user?.empresaId) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
       }
     } catch (err: any) {
       if (err instanceof ApiError) {
@@ -198,7 +198,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToRegister, onLo
               <button
                 className="w-full py-4 bg-white border-2 border-secondary text-secondary font-bold rounded-xl hover:bg-secondary/5 hover:scale-[1.01] transition-all duration-200 font-headline flex items-center justify-center gap-2 cursor-pointer"
                 type="button"
-                onClick={onNavigateToRegister}
+                onClick={() => navigate('/register')}
               >
                 <span>Registrarse</span>
                 <span className="material-symbols-outlined text-xl">

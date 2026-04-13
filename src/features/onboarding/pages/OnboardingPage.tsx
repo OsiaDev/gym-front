@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { onboardingService, OnboardingRequest } from '../services/onboarding.service';
+import { authService } from '../../auth/services/auth.service';
 
-interface OnboardingPageProps {
-  onComplete: () => void;
-}
-
-export const OnboardingPage: React.FC<OnboardingPageProps> = ({ onComplete }) => {
+export const OnboardingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +36,15 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({ onComplete }) =>
         telefonoSede
       };
       await onboardingService.setupWorkspace(payload);
-      onComplete(); // App.tsx will handle the logout and redirect
+      
+      // Update local storage so ProtectedRoute allows us to dashboard
+      const user = authService.getStoredUser();
+      if (user) {
+          user.empresaId = nit; // Temporary representation of the newly created company
+          authService.setStoredUser(user);
+      }
+      
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Error occurred while saving workspace details.');
     } finally {
