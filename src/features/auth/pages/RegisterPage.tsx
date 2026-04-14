@@ -27,25 +27,7 @@ export const RegisterPage: React.FC = () => {
         }
     };
 
-    const handleBlurEmail = async () => {
-        if (!formData.email) return;
-        try {
-            const exists = await authApi.checkEmail(formData.email);
-            if (exists) {
-                setFieldErrors(prev => ({ ...prev, email: 'El correo electrónico ya está registrado' }));
-            }
-        } catch (err) {}
-    };
 
-    const handleBlurNick = async () => {
-        if (!formData.nickUsuario) return;
-        try {
-            const exists = await authApi.checkNick(formData.nickUsuario);
-            if (exists) {
-                setFieldErrors(prev => ({ ...prev, nickUsuario: 'El nombre de usuario ya está en uso' }));
-            }
-        } catch (err) {}
-    };
 
     const handleBlurPassword = () => {
         if (!formData.password) return;
@@ -142,12 +124,12 @@ export const RegisterPage: React.FC = () => {
                         <div className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Nombre de Usuario</label>
-                                <input name="nickUsuario" value={formData.nickUsuario} onChange={handleChange} onBlur={handleBlurNick} required className={`w-full px-4 py-3 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-on-background transition-all placeholder:text-outline/50 ${fieldErrors.nickUsuario ? 'ring-2 ring-error/50' : ''}`} placeholder="alex.pierce92" type="text" />
+                                <input name="nickUsuario" value={formData.nickUsuario} onChange={handleChange} required className={`w-full px-4 py-3 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-on-background transition-all placeholder:text-outline/50 ${fieldErrors.nickUsuario ? 'ring-2 ring-error/50' : ''}`} placeholder="alex.pierce92" type="text" />
                                 {fieldErrors.nickUsuario && <span className="text-xs text-error ml-1">{fieldErrors.nickUsuario}</span>}
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Email</label>
-                                <input name="email" value={formData.email} onChange={handleChange} onBlur={handleBlurEmail} required className={`w-full px-4 py-3 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-on-background transition-all placeholder:text-outline/50 ${fieldErrors.email ? 'ring-2 ring-error/50' : ''}`} placeholder="alex@kinetic.com" type="email" />
+                                <input name="email" value={formData.email} onChange={handleChange} required className={`w-full px-4 py-3 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-on-background transition-all placeholder:text-outline/50 ${fieldErrors.email ? 'ring-2 ring-error/50' : ''}`} placeholder="alex@kinetic.com" type="email" />
                                 {fieldErrors.email && <span className="text-xs text-error ml-1">{fieldErrors.email}</span>}
                             </div>
                         </div>

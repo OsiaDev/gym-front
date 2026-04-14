@@ -28,19 +28,19 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         <nav className="flex-1 space-y-1 font-body">
-          <a className="relative flex items-center gap-3 px-6 py-4 text-on-secondary-container before:absolute before:left-0 before:w-1 before:h-6 before:bg-secondary before:rounded-r-full bg-secondary-container/30 scale-[0.99] transition-all" href="#dashboard">
+          <a onClick={() => navigate('/dashboard')} className="relative flex items-center gap-3 px-6 py-4 text-on-secondary-container before:absolute before:left-0 before:w-1 before:h-6 before:bg-secondary before:rounded-r-full bg-secondary-container/30 scale-[0.99] transition-all cursor-pointer">
             <span className="material-symbols-outlined">dashboard</span>
             <span className="font-bold">Dashboard</span>
           </a>
-          <a className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all" href="#clients">
+          <a onClick={() => navigate('/clients')} className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all cursor-pointer">
             <span className="material-symbols-outlined">group</span>
             <span>Clientes</span>
           </a>
-          <a className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all" href="#memberships">
+          <a className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all cursor-pointer">
             <span className="material-symbols-outlined">card_membership</span>
             <span>Membresías</span>
           </a>
-          <a className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all" href="#access">
+          <a className="flex items-center gap-3 px-6 py-4 text-on-surface-variant hover:bg-surface-container-low transition-all cursor-pointer">
             <span className="material-symbols-outlined">door_open</span>
             <span>Accesos</span>
           </a>
