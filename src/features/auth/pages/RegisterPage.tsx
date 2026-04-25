@@ -44,7 +44,7 @@ export const RegisterPage: React.FC = () => {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         
         // Validar si existen errores en el formulario antes de enviar
@@ -147,7 +147,7 @@ export const RegisterPage: React.FC = () => {
                             </div>
                         </div>
 
-                        <button disabled={isLoading} className="w-full mt-6 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                        <button disabled={isLoading} className="w-full mt-6 py-4 bg-linear-to-br from-primary to-primary-container text-on-primary font-bold rounded-xl shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
                             {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
                             {isLoading ? (
                                 <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>

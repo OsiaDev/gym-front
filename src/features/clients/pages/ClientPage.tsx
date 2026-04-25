@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, getHighestPriorityRole } from '../../auth/services/auth.service';
+import { clientsService, Cliente } from '../services/clients.service';
 
 export const ClientPage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,21 +10,32 @@ export const ClientPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchStatus, setSearchStatus] = useState<'idle' | 'found' | 'not_found'>('idle');
+  const [foundClient, setFoundClient] = useState<Cliente | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = () => {
     authService.logout();
     navigate('/login');
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() || !user?.empresaId) {
+      if (!user?.empresaId) console.error('No empresaId found for user');
+      return;
+    }
 
-    // Simulated search logic
-    if (searchQuery === '123' || searchQuery === '12345678') {
+    setIsLoading(true);
+    try {
+      const client = await clientsService.buscarPorDocumento(searchQuery, user.empresaId);
+      setFoundClient(client);
       setSearchStatus('found');
-    } else {
+    } catch (error) {
+      console.error('Error searching client:', error);
+      setFoundClient(null);
       setSearchStatus('not_found');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,9 +141,15 @@ export const ClientPage: React.FC = () => {
                     />
                   </div>
                 </div>
-                <button type="submit" className="bg-primary text-on-primary px-10 py-4 rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg active:scale-95">
-                  <span className="material-symbols-outlined">search</span>
-                  Buscar
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="bg-primary text-on-primary px-10 py-4 rounded-xl font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                >
+                  <span className={`material-symbols-outlined ${isLoading ? 'animate-spin' : ''}`}>
+                    {isLoading ? 'progress_activity' : 'search'}
+                  </span>
+                  {isLoading ? 'Buscando...' : 'Buscar'}
                 </button>
               </form>
             </div>
@@ -149,9 +167,11 @@ export const ClientPage: React.FC = () => {
                         <img alt="Alex Cliente profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCL7c00JVz-nlhB-wcrNPEIKLptedwiI_tlVybDXrUXBFmy9BAv5Q_CgNW1ALcXH-c3o-2BMjvQ2EDWY20jKeEAlOBUnnIZV6JYEiq6PUaNxZ7lkMOOdvwhkQn06pFpDgtEX2azMNTjNYYWj36E75RYKr70wgyViYo7zsaJplZYuPhfZqPk5lE2GaPXvqzk9LHv-i6I2VfS2jE2dXAP3LG6ABggKHQ5mCpzfTuhZpBTLa1VhGrIlxxJHmOkc9hBta4h3XoEKYL3GYiY" />
                       </div>
                       <div>
-                        <h3 className="text-3xl font-extrabold text-slate-900 leading-none mb-2">Alex Cliente</h3>
+                        <h3 className="text-3xl font-extrabold text-slate-900 leading-none mb-2">
+                          {foundClient?.nombresCliente} {foundClient?.apellidosCliente}
+                        </h3>
                         <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-surface-variant text-on-surface-variant uppercase tracking-wider">
-                          Prospecto / Sin Membresía
+                          {foundClient?.estadoCliente ? 'Activo' : 'Inactivo'} / Prospecto
                         </span>
                       </div>
                     </div>
@@ -163,19 +183,21 @@ export const ClientPage: React.FC = () => {
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-12 mb-10">
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Celular</p>
-                      <p className="text-slate-900 font-semibold text-lg">+51 987 654 321</p>
+                      <p className="text-slate-900 font-semibold text-lg">{foundClient?.celularCliente || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Email</p>
-                      <p className="text-slate-900 font-semibold text-lg">alex@email.com</p>
+                      <p className="text-slate-900 font-semibold text-lg">{foundClient?.emailCliente || 'N/A'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Documento</p>
-                      <p className="text-slate-900 font-semibold text-lg">DNI {searchQuery}</p>
+                      <p className="text-slate-900 font-semibold text-lg">DNI {foundClient?.documentoCliente}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Registro</p>
-                      <p className="text-slate-900 font-semibold text-lg">Hace 2 días</p>
+                      <p className="text-slate-900 font-semibold text-lg">
+                        {foundClient?.createdAt ? new Date(foundClient.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
                     </div>
                   </div>
 
@@ -198,7 +220,7 @@ export const ClientPage: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <h4 className="text-xl font-bold text-slate-900">No encontramos a este cliente</h4>
-                    <p className="text-sm text-on-surface-variant max-w-[250px] mx-auto">No existe ningún registro con el documento ingresado en nuestra base de datos.</p>
+                    <p className="text-sm text-on-surface-variant max-w-62.5 mx-auto">No existe ningún registro con el documento ingresado en nuestra base de datos.</p>
                   </div>
                   {/* Keep the button as a dummy action for now */}
                   <button className="bg-secondary text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md active:scale-95 pointer-events-none">
@@ -265,7 +287,7 @@ export const ClientPage: React.FC = () => {
           {/* Contextual Metric Footer */}
           <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 bg-surface-container-lowest rounded-xl border-t-4 border-primary shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-outline mb-2">Total Prospectos Hoy</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-outline mb-2">Total Prospectos Hoy</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-headline font-extrabold text-slate-900 tracking-tighter">24</span>
                 <span className="text-secondary font-bold text-sm flex items-center gap-1">
@@ -275,14 +297,14 @@ export const ClientPage: React.FC = () => {
               </div>
             </div>
             <div className="p-8 bg-surface-container-lowest rounded-xl border-t-4 border-secondary-fixed-dim shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-outline mb-2">Conversión Ventas</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-outline mb-2">Conversión Ventas</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-headline font-extrabold text-slate-900 tracking-tighter">18%</span>
                 <span className="text-outline font-bold text-sm">Promedio Semanal</span>
               </div>
             </div>
             <div className="p-8 bg-surface-container-lowest rounded-xl border-t-4 border-on-primary-container shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.1em] text-outline mb-2">Consultas Documento</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-outline mb-2">Consultas Documento</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-headline font-extrabold text-slate-900 tracking-tighter">142</span>
                 <span className="text-outline font-bold text-sm">Últimas 24h</span>
