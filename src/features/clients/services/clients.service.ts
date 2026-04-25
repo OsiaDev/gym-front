@@ -1,7 +1,15 @@
 import { apiService } from '@shared/services/api.service';
 
+export enum TipoDocumento {
+    CC = 'CC',
+    CE = 'CE',
+    PASAPORTE = 'PASAPORTE',
+    NIT = 'NIT'
+}
+
 export interface Cliente {
     uuidCliente: string;
+    tipoDocumento: TipoDocumento;
     documentoCliente: string;
     nombresCliente: string;
     apellidosCliente: string;
@@ -14,22 +22,28 @@ export interface Cliente {
 class ClientsService {
     /**
      * Busca un cliente por documento y empresaId.
-     * El endpoint en el backend es GET /api/v1/gym/clientes/{documento}
+     * El endpoint en el backend es GET /api/v1/clientes/{documento}
      */
-    async buscarPorDocumento(documento: string, empresaId: string): Promise<Cliente> {
-        return await apiService.get<Cliente>(`/v1/gym/clientes/${documento}`, {
+    async buscarPorDocumento(documento: string): Promise<Cliente> {
+        return await apiService.get<Cliente>(`/v1/clientes/${documento}`);
+    }
+
+    /**
+     * Registra un nuevo cliente globalmente y lo asocia a la empresa.
+     * El endpoint en el backend es POST /api/v1/clientes
+     */
+    async registrarCliente(cliente: Partial<Cliente>, empresaId: string): Promise<Cliente> {
+        return await apiService.post<Cliente>('/v1/clientes', cliente, {
             params: { empresaId }
         });
     }
 
     /**
-     * Registra un nuevo cliente globalmente y lo asocia a la empresa.
-     * El endpoint en el backend es POST /api/v1/gym/clientes
+     * Obtiene los tipos de documento disponibles.
+     * El endpoint en el backend es GET /api/v1/clientes/tipos-documento
      */
-    async registrarCliente(cliente: Partial<Cliente>, empresaId: string): Promise<Cliente> {
-        return await apiService.post<Cliente>('/v1/gym/clientes', cliente, {
-            params: { empresaId }
-        });
+    async getTiposDocumento(): Promise<TipoDocumento[]> {
+        return await apiService.get<TipoDocumento[]>('/v1/clientes/tipos-documento');
     }
 }
 

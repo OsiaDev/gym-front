@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, getHighestPriorityRole } from '../../auth/services/auth.service';
-import { clientsService, Cliente } from '../services/clients.service';
+import { clientsService, Cliente, TipoDocumento } from '../services/clients.service';
 
 export const ClientPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +12,35 @@ export const ClientPage: React.FC = () => {
   const [searchStatus, setSearchStatus] = useState<'idle' | 'found' | 'not_found'>('idle');
   const [foundClient, setFoundClient] = useState<Cliente | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [tiposDocumento, setTiposDocumento] = useState<TipoDocumento[]>([]);
+
+  // Form State for new client
+  const [formData, setFormData] = useState<Partial<Cliente>>({
+    tipoDocumento: TipoDocumento.CC,
+    documentoCliente: '',
+    nombresCliente: '',
+    apellidosCliente: '',
+    emailCliente: '',
+    celularCliente: '',
+  });
+
+  useEffect(() => {
+    const fetchTipos = async () => {
+      try {
+        const types = await clientsService.getTiposDocumento();
+        setTiposDocumento(types);
+      } catch (error) {
+        console.error('Error fetching document types:', error);
+      }
+    };
+    fetchTipos();
+  }, []);
+
+  useEffect(() => {
+    if (searchStatus === 'not_found') {
+      setFormData(prev => ({ ...prev, documentoCliente: searchQuery }));
+    }
+  }, [searchStatus, searchQuery]);
 
   const handleLogout = () => {
     authService.logout();
@@ -27,7 +56,7 @@ export const ClientPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const client = await clientsService.buscarPorDocumento(searchQuery, user.empresaId);
+      const client = await clientsService.buscarPorDocumento(searchQuery);
       setFoundClient(client);
       setSearchStatus('found');
     } catch (error) {
@@ -39,9 +68,32 @@ export const ClientPage: React.FC = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.empresaId) return;
+
+    setIsLoading(true);
+    try {
+      const newClient = await clientsService.registrarCliente(formData, user.empresaId);
+      setFoundClient(newClient);
+      setSearchStatus('found');
+      alert('Cliente registrado con éxito');
+    } catch (error) {
+      console.error('Error registering client:', error);
+      alert('Error al registrar el cliente');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="bg-background text-on-surface min-h-screen">
-      {/* SideNavBar */}
+      {/* ... (side nav remains the same) ... */}
       <aside className="h-screen w-72 fixed left-0 top-0 z-50 bg-surface-container-lowest flex flex-col py-8 border-r border-outline-variant/30 font-headline text-sm font-medium">
         <div className="px-8 mb-12 flex flex-col gap-1">
           <div className="flex items-center gap-3">
@@ -123,10 +175,9 @@ export const ClientPage: React.FC = () => {
             <p className="text-lg text-on-surface-variant font-body">Busca prospectos para asignar o vender nuevas membresías</p>
           </header>
 
-          {/* Search Area (Bento Grid Style) */}
+          {/* Search Area */}
           <div className="grid grid-cols-12 gap-8 items-start">
-            {/* Search Input Card */}
-            <div className="col-span-12 lg:col-span-12 bg-surface-container-low p-8 rounded-xl shadow-sm border border-transparent">
+            <div className="col-span-12 bg-surface-container-low p-8 rounded-xl shadow-sm border border-transparent">
               <form onSubmit={handleSearch} className="flex flex-col md:flex-row items-end gap-4">
                 <div className="flex-1 w-full space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Búsqueda por Documento</label>
@@ -154,7 +205,7 @@ export const ClientPage: React.FC = () => {
               </form>
             </div>
 
-            {/* STATE 1: FOUND (Left side focus) */}
+            {/* STATE 1: FOUND */}
             {searchStatus === 'found' && (
               <div className="col-span-12 lg:col-span-12">
                 <div className="bg-surface-container-low p-8 rounded-xl border-l-8 border-secondary-fixed shadow-lg relative overflow-hidden">
@@ -175,9 +226,6 @@ export const ClientPage: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <button className="p-2 hover:bg-white/50 rounded-full transition-colors">
-                      <span className="material-symbols-outlined">more_vert</span>
-                    </button>
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-6 gap-x-12 mb-10">
@@ -191,7 +239,7 @@ export const ClientPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Documento</p>
-                      <p className="text-slate-900 font-semibold text-lg">DNI {foundClient?.documentoCliente}</p>
+                      <p className="text-slate-900 font-semibold text-lg">{foundClient?.tipoDocumento} {foundClient?.numeroIdentificacion}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Registro</p>
@@ -220,12 +268,8 @@ export const ClientPage: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <h4 className="text-xl font-bold text-slate-900">No encontramos a este cliente</h4>
-                    <p className="text-sm text-on-surface-variant max-w-62.5 mx-auto">No existe ningún registro con el documento ingresado en nuestra base de datos.</p>
+                    <p className="text-sm text-on-surface-variant max-w-62.5 mx-auto">No existe ningún registro con el documento ingresado. Puedes registrarlo abajo.</p>
                   </div>
-                  {/* Keep the button as a dummy action for now */}
-                  <button className="bg-secondary text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 transition-all shadow-md active:scale-95 pointer-events-none">
-                    Completa el formulario de abajo
-                  </button>
                 </div>
                 
                 {/* STATE 3: FORM */}
@@ -240,42 +284,42 @@ export const ClientPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <form className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <form onSubmit={handleRegister} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Nombre</label>
-                      <input className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. Juan" type="text" />
+                      <input name="nombresCliente" value={formData.nombresCliente} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. Juan" type="text" required />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Apellidos</label>
-                      <input className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. Pérez" type="text" />
+                      <input name="apellidosCliente" value={formData.apellidosCliente} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. Pérez" type="text" required />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Tipo de Documento</label>
-                      <select className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all appearance-none">
-                        <option>DNI - Documento Nacional de Identidad</option>
-                        <option>CE - Carnet de Extranjería</option>
-                        <option>Pasaporte</option>
+                      <select name="tipoDocumento" value={formData.tipoDocumento} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all appearance-none">
+                        {tiposDocumento.map(tipo => (
+                          <option key={tipo} value={tipo}>{tipo}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Documento</label>
-                      <input defaultValue={searchQuery} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. 76543210" type="text" />
+                      <input name="numeroIdentificacion" value={formData.numeroIdentificacion} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. 76543210" type="text" required />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Email</label>
-                      <input className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="juan.perez@example.com" type="email" />
+                      <input name="emailCliente" value={formData.emailCliente} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="juan.perez@example.com" type="email" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Teléfono</label>
-                      <input className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="+51 900 000 000" type="tel" />
+                      <input name="celularCliente" value={formData.celularCliente} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="+51 900 000 000" type="tel" />
                     </div>
 
                     <div className="md:col-span-2 flex items-center justify-end gap-4 pt-6">
                       <button onClick={() => setSearchStatus('idle')} className="px-8 py-3 rounded-xl font-bold text-outline hover:text-slate-900 transition-colors" type="button">
                         Cancelar
                       </button>
-                      <button className="bg-primary text-white px-12 py-4 rounded-xl font-extrabold shadow-lg hover:scale-[1.02] transition-transform active:scale-95" type="button" onClick={() => { alert('Cliente guardado!'); setSearchStatus('found'); }}>
-                        Guardar Cliente
+                      <button disabled={isLoading} className="bg-primary text-white px-12 py-4 rounded-xl font-extrabold shadow-lg hover:scale-[1.02] transition-transform active:scale-95 disabled:opacity-50" type="submit">
+                        {isLoading ? 'Guardando...' : 'Guardar Cliente'}
                       </button>
                     </div>
                   </form>
