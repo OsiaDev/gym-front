@@ -73,13 +73,13 @@ export const ClientPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user?.empresaId) return;
 
     setIsLoading(true);
     try {
-      const newClient = await clientsService.registrarCliente(formData, user.empresaId);
+      const newClient = await clientsService.registrarCliente(formData);
       setFoundClient(newClient);
       setSearchStatus('found');
       alert('Cliente registrado con éxito');

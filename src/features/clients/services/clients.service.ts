@@ -25,17 +25,15 @@ class ClientsService {
      * El endpoint en el backend es GET /api/v1/clientes/{documento}
      */
     async buscarPorDocumento(documento: string): Promise<Cliente> {
-        return await apiService.get<Cliente>(`/v1/clientes/${documento}`);
+        return await apiService.get<Cliente>(`/v1/clientes/buscar-documento/${documento}`);
     }
 
     /**
      * Registra un nuevo cliente globalmente y lo asocia a la empresa.
      * El endpoint en el backend es POST /api/v1/clientes
      */
-    async registrarCliente(cliente: Partial<Cliente>, empresaId: string): Promise<Cliente> {
-        return await apiService.post<Cliente>('/v1/clientes', cliente, {
-            params: { empresaId }
-        });
+    async registrarCliente(cliente: Partial<Cliente>): Promise<Cliente> {
+        return await apiService.post<Cliente>('/v1/clientes/crear', cliente);
     }
 
     /**
