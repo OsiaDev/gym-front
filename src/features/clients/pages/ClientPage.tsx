@@ -239,7 +239,7 @@ export const ClientPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Documento</p>
-                      <p className="text-slate-900 font-semibold text-lg">{foundClient?.tipoDocumento} {foundClient?.numeroIdentificacion}</p>
+                      <p className="text-slate-900 font-semibold text-lg">{foundClient?.tipoDocumento} {foundClient?.documentoCliente}</p>
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-outline uppercase tracking-widest mb-1">Registro</p>
@@ -303,7 +303,7 @@ export const ClientPage: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Documento</label>
-                      <input name="numeroIdentificacion" value={formData.numeroIdentificacion} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. 76543210" type="text" required />
+                      <input name="documentoCliente" value={formData.documentoCliente} onChange={handleInputChange} className="w-full p-4 bg-white border border-outline-variant/30 rounded-xl focus:ring-2 focus:ring-on-primary-container/20 transition-all" placeholder="Ej. 76543210" type="text" required />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-outline ml-1">Email</label>
