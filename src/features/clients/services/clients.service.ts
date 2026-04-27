@@ -33,7 +33,7 @@ class ClientsService {
      * El endpoint en el backend es POST /api/v1/clientes
      */
     async registrarCliente(cliente: Partial<Cliente>): Promise<Cliente> {
-        return await apiService.post<Cliente>('/v1/clientes/crear', cliente);
+        return await apiService.post<Cliente>('/v1/clientes', cliente);
     }
 
     /**
